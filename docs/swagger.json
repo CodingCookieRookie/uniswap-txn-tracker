@@ -1,0 +1,212 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Server for uniswap transactions operations",
+        "title": "Uniswap Transaction Tracker",
+        "contact": {
+            "name": "Alvin Chee",
+            "url": "https://github.com/CodingCookieRookie",
+            "email": "alvinchee98@gmail.com"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/api/v1",
+    "paths": {
+        "/transaction/fee": {
+            "get": {
+                "description": "returns transaction fee of transaction with corresponding transaction hash",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "returns transaction fee of transaction with corresponding transaction hash",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Transaction hash",
+                        "name": "txn_hash",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.TxnFeeResp"
+                        }
+                    },
+                    "500": {
+                        "description": "Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.ServerError"
+                        }
+                    }
+                }
+            }
+        },
+        "/transactions": {
+            "get": {
+                "description": "returns all historical transactions from start to end time",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "returns all historical transactions from start to end time",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Address",
+                        "name": "address",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Start Time in ISO 8601 format",
+                        "name": "start_time",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "End Time in ISO 8601 format",
+                        "name": "end_time",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.TxnsResp"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errors.UserError"
+                        }
+                    },
+                    "500": {
+                        "description": "Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.ServerError"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "errors.ServerError": {
+            "type": "object",
+            "properties": {
+                "msg": {
+                    "type": "string"
+                }
+            }
+        },
+        "errors.UserError": {
+            "type": "object",
+            "properties": {
+                "msg": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.Txn": {
+            "type": "object",
+            "properties": {
+                "blockHash": {
+                    "type": "string"
+                },
+                "blockNumber": {
+                    "type": "string"
+                },
+                "confirmations": {
+                    "type": "string"
+                },
+                "contractAddress": {
+                    "type": "string"
+                },
+                "cumulativeGasUsed": {
+                    "type": "string"
+                },
+                "from": {
+                    "type": "string"
+                },
+                "gas": {
+                    "type": "string"
+                },
+                "gasPrice": {
+                    "type": "string"
+                },
+                "gasUsed": {
+                    "type": "string"
+                },
+                "hash": {
+                    "type": "string"
+                },
+                "input": {
+                    "type": "string"
+                },
+                "nonce": {
+                    "type": "string"
+                },
+                "timeStamp": {
+                    "type": "string"
+                },
+                "to": {
+                    "type": "string"
+                },
+                "tokenDecimal": {
+                    "type": "string"
+                },
+                "tokenName": {
+                    "type": "string"
+                },
+                "tokenSymbol": {
+                    "type": "string"
+                },
+                "transactionIndex": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.TxnFeeResp": {
+            "type": "object",
+            "properties": {
+                "transactionFee": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.TxnsResp": {
+            "type": "object",
+            "properties": {
+                "transactions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.Txn"
+                    }
+                }
+            }
+        }
+    }
+}

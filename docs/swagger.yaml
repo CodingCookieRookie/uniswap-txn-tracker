@@ -1,0 +1,142 @@
+basePath: /api/v1
+definitions:
+  errors.ServerError:
+    properties:
+      msg:
+        type: string
+    type: object
+  errors.UserError:
+    properties:
+      msg:
+        type: string
+    type: object
+  response.Txn:
+    properties:
+      blockHash:
+        type: string
+      blockNumber:
+        type: string
+      confirmations:
+        type: string
+      contractAddress:
+        type: string
+      cumulativeGasUsed:
+        type: string
+      from:
+        type: string
+      gas:
+        type: string
+      gasPrice:
+        type: string
+      gasUsed:
+        type: string
+      hash:
+        type: string
+      input:
+        type: string
+      nonce:
+        type: string
+      timeStamp:
+        type: string
+      to:
+        type: string
+      tokenDecimal:
+        type: string
+      tokenName:
+        type: string
+      tokenSymbol:
+        type: string
+      transactionIndex:
+        type: string
+      value:
+        type: string
+    type: object
+  response.TxnFeeResp:
+    properties:
+      transactionFee:
+        type: string
+    type: object
+  response.TxnsResp:
+    properties:
+      transactions:
+        items:
+          $ref: '#/definitions/response.Txn'
+        type: array
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: alvinchee98@gmail.com
+    name: Alvin Chee
+    url: https://github.com/CodingCookieRookie
+  description: Server for uniswap transactions operations
+  title: Uniswap Transaction Tracker
+  version: "1.0"
+paths:
+  /transaction/fee:
+    get:
+      consumes:
+      - application/json
+      description: returns transaction fee of transaction with corresponding transaction
+        hash
+      parameters:
+      - description: Transaction hash
+        in: query
+        name: txn_hash
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.TxnFeeResp'
+        "500":
+          description: Server Error
+          schema:
+            $ref: '#/definitions/errors.ServerError'
+      summary: returns transaction fee of transaction with corresponding transaction
+        hash
+      tags:
+      - accounts
+  /transactions:
+    get:
+      consumes:
+      - application/json
+      description: returns all historical transactions from start to end time
+      parameters:
+      - description: Address
+        in: query
+        name: address
+        required: true
+        type: string
+      - description: Start Time in ISO 8601 format
+        in: query
+        name: start_time
+        required: true
+        type: string
+      - description: End Time in ISO 8601 format
+        in: query
+        name: end_time
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.TxnsResp'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.UserError'
+        "500":
+          description: Server Error
+          schema:
+            $ref: '#/definitions/errors.ServerError'
+      summary: returns all historical transactions from start to end time
+      tags:
+      - accounts
+swagger: "2.0"

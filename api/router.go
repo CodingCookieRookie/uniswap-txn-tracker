@@ -4,12 +4,17 @@ import (
 	"fmt"
 	"net/http"
 
+	_ "github.com/CodingCookieRookie/uniswap-txn-tracker/docs"
 	"github.com/CodingCookieRookie/uniswap-txn-tracker/errors"
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func InitRouter() {
 	r := gin.Default()
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
 	v1 := r.Group("/api/v1")
 	{
 		v1.GET("transaction/fee", ginResponseWithError(GetTransactionFee))
