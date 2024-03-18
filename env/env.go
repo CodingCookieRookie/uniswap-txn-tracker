@@ -14,6 +14,7 @@ var (
 	ETHERSCAN_API_KEY        string
 	UNISWAP_V3_CONTRACT_ADDR string
 	INFURA_URL               string
+	DB_NAME                  string
 )
 
 func init() {

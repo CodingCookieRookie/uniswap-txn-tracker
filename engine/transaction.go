@@ -111,7 +111,7 @@ func insertHistoricalTransactions() {
 		} else {
 			log.Info("successfully inserted historical transactions into db")
 		}
-		time.Sleep(time.Second * 3)
+		time.Sleep(time.Second * 90)
 	}
 }
 

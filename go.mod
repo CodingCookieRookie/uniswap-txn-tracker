@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/binance/binance-connector-go v0.5.2
-	github.com/ethereum/go-ethereum v1.13.14
+	github.com/ethereum/go-ethereum v1.13.5-0.20240318071355-c61192472712
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-sql-driver/mysql v1.8.0
 	github.com/joho/godotenv v1.5.1

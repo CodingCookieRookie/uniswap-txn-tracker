@@ -3,7 +3,7 @@ package engine
 import "time"
 
 // Ensure live transaction runs once to get last block.
-func RuncInsertHistoricalTransactions() {
+func RunInsertScheduler() {
 	insertLiveTransactions()
 	go insertHistoricalTransactions()
 	go insertSwapPrices()
@@ -12,6 +12,6 @@ func RuncInsertHistoricalTransactions() {
 func RunInsertLiveTransactions() {
 	for {
 		insertLiveTransactions()
-		time.Sleep(30 * time.Second)
+		time.Sleep(45 * time.Second)
 	}
 }

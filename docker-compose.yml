@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_USER=root
+      - DB_NAME=uniswap_db
+    env_file: .env
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+  db:
+    platform: linux/amd64 
+    image: mysql:5.7
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: 1
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./dump:/docker-entrypoint-initdb.d
+    networks:
+      - app-network
+
+
+networks:
+  app-network:
+
+volumes:
+  db-data:

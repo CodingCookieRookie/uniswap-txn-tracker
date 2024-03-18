@@ -15,6 +15,11 @@ func GetUniswapSwapPrice(txnHash string) (*model.SwapResponse, error) {
 
 	if err != nil {
 		log.Errorf("error getting transactions from db, error: %v", err)
+		if len(swapEventsWithToken) == 0 {
+			return nil, &errors.ServerError{
+				Msg: "Please wait some time for the server to pull your data if input is valid",
+			}
+		}
 		return nil, &errors.ServerError{
 			Msg: err.Error(),
 		}

@@ -15,6 +15,11 @@ func GetHistoricalTxnsService(startTime, endTime uint64) (*model.TxnsResp, error
 
 	if err != nil {
 		log.Errorf("error getting transactions from db, error: %v", err)
+		if len(txns) == 0 {
+			return nil, &errors.ServerError{
+				Msg: "Please wait some time for the server to pull your data if input is valid",
+			}
+		}
 		return nil, &errors.ServerError{
 			Msg: err.Error(),
 		}
@@ -22,7 +27,7 @@ func GetHistoricalTxnsService(startTime, endTime uint64) (*model.TxnsResp, error
 
 	return &model.TxnsResp{
 		Result: txns,
-	}, nil
+	}, err
 }
 
 func weiToEth(gasPrice uint64) float64 {

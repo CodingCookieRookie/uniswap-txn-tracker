@@ -30,7 +30,7 @@ func generateStatusMsg(err error) string {
 	} else if _, ok := err.(*errors.UserError); ok {
 		return fmt.Sprintf("%v Bad Request Error: %v", http.StatusBadRequest, err.Error())
 	} else if _, ok := err.(*errors.ServerError); ok {
-		return fmt.Sprintf("%v Interval Server Error", http.StatusInternalServerError)
+		return fmt.Sprintf("%v Interval Server Error: %v", http.StatusInternalServerError, err.Error())
 	} else {
 		return fmt.Sprintf("520 Unknown Error: %v", err)
 	}

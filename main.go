@@ -18,7 +18,6 @@ import (
 // @BasePath	/api/v1
 func main() {
 	log.Info("Starting Uniswap Transaction Tracker")
-	go engine.RuncInsertHistoricalTransactions()
-
+	go engine.RunInsertScheduler()
 	api.InitRouter()
 }
