@@ -19,6 +19,44 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/swap": {
+            "get": {
+                "description": "returns uniswap swap price with corresponding transaction hash",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "returns uniswap swap price with corresponding transaction hash",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Transaction hash",
+                        "name": "txn_hash",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.SwapResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.ServerError"
+                        }
+                    }
+                }
+            }
+        },
         "/transaction/fee": {
             "get": {
                 "description": "returns transaction fee of transaction with corresponding transaction hash",
@@ -45,7 +83,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.TxnFeeResp"
+                            "$ref": "#/definitions/model.TxnFeeResp"
                         }
                     },
                     "500": {
@@ -73,13 +111,6 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Address",
-                        "name": "address",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
                         "description": "Start Time in ISO 8601 format",
                         "name": "start_time",
                         "in": "query",
@@ -97,7 +128,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.TxnsResp"
+                            "$ref": "#/definitions/model.TxnsResp"
                         }
                     },
                     "400": {
@@ -133,7 +164,52 @@ const docTemplate = `{
                 }
             }
         },
-        "response.Txn": {
+        "model.SwapEventWithToken": {
+            "type": "object",
+            "properties": {
+                "from": {
+                    "type": "string"
+                },
+                "sqrtPriceX96": {
+                    "type": "string"
+                },
+                "to": {
+                    "type": "string"
+                },
+                "tokenDecimal": {
+                    "type": "string"
+                },
+                "tokenName": {
+                    "type": "string"
+                },
+                "tokenSymbol": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.SwapPrice": {
+            "type": "object",
+            "properties": {
+                "price": {
+                    "type": "string"
+                },
+                "swap_event": {
+                    "$ref": "#/definitions/model.SwapEventWithToken"
+                }
+            }
+        },
+        "model.SwapResponse": {
+            "type": "object",
+            "properties": {
+                "swap_prices": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.SwapPrice"
+                    }
+                }
+            }
+        },
+        "model.Txn": {
             "type": "object",
             "properties": {
                 "blockHash": {
@@ -150,6 +226,9 @@ const docTemplate = `{
                 },
                 "cumulativeGasUsed": {
                     "type": "string"
+                },
+                "ethprice": {
+                    "type": "number"
                 },
                 "from": {
                     "type": "string"
@@ -195,22 +274,28 @@ const docTemplate = `{
                 }
             }
         },
-        "response.TxnFeeResp": {
+        "model.TxnFeeResp": {
             "type": "object",
             "properties": {
                 "transactionFee": {
-                    "type": "string"
+                    "type": "number"
                 }
             }
         },
-        "response.TxnsResp": {
+        "model.TxnsResp": {
             "type": "object",
             "properties": {
-                "transactions": {
+                "message": {
+                    "type": "string"
+                },
+                "result": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/response.Txn"
+                        "$ref": "#/definitions/model.Txn"
                     }
+                },
+                "status": {
+                    "type": "string"
                 }
             }
         }
@@ -224,7 +309,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
 	Title:            "Uniswap Transaction Tracker",
-	Description:      "Server for uniswap transactions operations",
+	Description:      "Server for uniswap transactions operations.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

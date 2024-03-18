@@ -30,6 +30,7 @@ func init() {
 	}
 
 	createTxnTable()
+	createSwapTable()
 }
 
 // Return result rows from select query statement
@@ -115,6 +116,7 @@ func createDB() error {
 
 func createTxnTable() {
 	sql := `CREATE TABLE IF NOT EXISTS transactions (
+		id VARCHAR(64) NOT NULL,
 		blockNumber BIGINT UNSIGNED,
 		timeStamp BIGINT UNSIGNED,
 		hash CHAR(66),
@@ -134,9 +136,11 @@ func createTxnTable() {
 		cumulativeGasUsed BIGINT,
 		input VARCHAR(50),
 		confirmations INT,
-		ethPrice DECIMAL(20, 8), 
+		ethPrice DECIMAL(20, 8),
+		PRIMARY KEY(id), 
 		INDEX (timeStamp),
-		INDEX (hash)
+		INDEX (hash),
+		INDEX idx_txn_from_to (hash, fromAddress, toAddress)
 	);`
 	_, err := db.Exec(sql)
 	if err != nil {
@@ -144,4 +148,22 @@ func createTxnTable() {
 		return
 	}
 	log.Info("txn table created")
+}
+
+func createSwapTable() {
+	sql := `CREATE TABLE IF NOT EXISTS swaps (
+		id VARCHAR(64) NOT NULL,
+		txnHash CHAR(66),
+		sqrtPriceX96 VARCHAR(100),
+		fromAddress CHAR(42),
+		toAddress CHAR(42),
+		PRIMARY KEY(id), 
+		INDEX idx_txn_from_to (txnHash, fromAddress, toAddress)
+	);`
+	_, err := db.Exec(sql)
+	if err != nil {
+		log.Panicf("error creating swap table: %v", err)
+		return
+	}
+	log.Info("swap table created")
 }

@@ -1,6 +1,8 @@
 package mysql
 
 import (
+	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
 	"strconv"
 	"strings"
@@ -25,6 +27,23 @@ func ReplaceTransactionBulkByBatch(transactions []*model.Txn, timestampToEthPric
 	return nil
 }
 
+// Generates shortened and unique id to store transactions.
+func generateUniqueTxnId(txn *model.Txn, length int) string {
+	if txn == nil {
+		return ""
+	}
+	input := fmt.Sprintf("%v-%v-%v-%v", txn.BlockNumber, txn.From, txn.To, txn.Hash)
+	hasher := sha256.New()
+	hasher.Write([]byte(input))
+	hashBytes := hasher.Sum(nil)
+
+	encoded := base64.URLEncoding.EncodeToString(hashBytes)
+	if length > 0 && length < len(encoded) {
+		return encoded[:length]
+	}
+	return encoded
+}
+
 func ReplaceTransactionsBulk(txns []*model.Txn, timestampToEthPriceMap *map[uint64]string) error {
 	if len(txns) == 0 {
 		return nil
@@ -38,6 +57,7 @@ func ReplaceTransactionsBulk(txns []*model.Txn, timestampToEthPriceMap *map[uint
 	args := []any{}
 
 	for _, tx := range txns {
+		id := generateUniqueTxnId(tx, 64)
 		timeStamp, err := strconv.ParseInt(tx.TimeStamp, 10, 64)
 		if err != nil {
 			log.Errorf("error converting txn timestamp to int64: %v", err)
@@ -49,7 +69,7 @@ func ReplaceTransactionsBulk(txns []*model.Txn, timestampToEthPriceMap *map[uint
 			return nil
 		}
 
-		arg := []any{tx.BlockNumber, tx.TimeStamp, tx.Hash, tx.Nonce, tx.BlockHash, tx.From, tx.ContractAddress, tx.To, tx.Value, tx.TokenName, tx.TokenSymbol, tx.TokenDecimal, tx.TransactionIndex, tx.Gas, tx.GasPrice, tx.GasUsed, tx.CumulativeGasUsed, tx.Input, tx.Confirmations, ethPrice}
+		arg := []any{id, tx.BlockNumber, tx.TimeStamp, tx.Hash, tx.Nonce, tx.BlockHash, tx.From, tx.ContractAddress, tx.To, tx.Value, tx.TokenName, tx.TokenSymbol, tx.TokenDecimal, tx.TransactionIndex, tx.Gas, tx.GasPrice, tx.GasUsed, tx.CumulativeGasUsed, tx.Input, tx.Confirmations, ethPrice}
 		sb.WriteString(fmt.Sprintf("%v,", returnPlaceHolderString(arg)))
 		args = append(args, arg...)
 	}
@@ -57,7 +77,7 @@ func ReplaceTransactionsBulk(txns []*model.Txn, timestampToEthPriceMap *map[uint
 	if index := strings.LastIndex(sb.String(), ","); index > 0 {
 		query = query[:index]
 	}
-	return exec("REPLACE INTO uniswap_db.transactions (`blockNumber`, `timeStamp`, `hash`, `nonce`, `blockHash`, `fromAddress`, `contractAddress`, `toAddress`, `value`, `tokenName`, `tokenSymbol`, `tokenDecimal`, `transactionIndex`, `gas`, `gasPrice`, `gasUsed`, `cumulativeGasUsed`, `input`, `confirmations`, `ethPrice`) VALUES "+query, args...)
+	return exec("REPLACE INTO uniswap_db.transactions (`id`, `blockNumber`, `timeStamp`, `hash`, `nonce`, `blockHash`, `fromAddress`, `contractAddress`, `toAddress`, `value`, `tokenName`, `tokenSymbol`, `tokenDecimal`, `transactionIndex`, `gas`, `gasPrice`, `gasUsed`, `cumulativeGasUsed`, `input`, `confirmations`, `ethPrice`) VALUES "+query, args...)
 }
 
 func GetTransactionsByTimestamp(startTime uint64, endTime uint64) ([]*model.Txn, error) {

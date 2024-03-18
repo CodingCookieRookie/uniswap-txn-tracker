@@ -20,7 +20,7 @@ const timeLayout = "2006-01-02 15:04:05"
 // @Produce		json
 // @Param			start_time	query		string	true	"Start Time in ISO 8601 format"
 // @Param			end_time	query		string	true	"End Time in ISO 8601 format"
-// @Success		200			{object}	response.TxnsResp
+// @Success		200			{object}	model.TxnsResp
 // @Failure		400			{object}	errors.UserError	"Bad Request"
 // @Failure		500			{object}	errors.ServerError	"Server Error"
 // @Router			/transactions [get]
@@ -59,10 +59,25 @@ func GetHistoricalTxns(c *gin.Context) (any, error) {
 // @Accept			json
 // @Produce		json
 // @Param			txn_hash		query		string	true	"Transaction hash"
-// @Success		200			{object}	response.TxnFeeResp
+// @Success		200			{object}	model.TxnFeeResp
 // @Failure		500			{object}	errors.ServerError	"Server Error"
 // @Router			/transaction/fee [get]
 func GetTransactionFee(c *gin.Context) (any, error) {
 	txnHash := c.Query("txn_hash")
 	return service.GetTransactionFeeService(txnHash)
+}
+
+// GetUniswapSwapPrice godoc
+// @Summary		returns uniswap swap price with corresponding transaction hash
+// @Description	returns uniswap swap price with corresponding transaction hash
+// @Tags			accounts
+// @Accept			json
+// @Produce		json
+// @Param			txn_hash		query		string	true	"Transaction hash"
+// @Success		200			{object}	model.SwapResponse
+// @Failure		500			{object}	errors.ServerError	"Server Error"
+// @Router			/swap [get]
+func GetUniswapSwapPrice(c *gin.Context) (any, error) {
+	txnHash := c.Query("txn_hash")
+	return service.GetUniswapSwapPrice(txnHash)
 }

@@ -24,10 +24,10 @@ const (
 	ETHUSDT    = "ETHUSDT"
 
 	txnPage                  = 1
-	txnEarliestBlock  uint64 = 12376729
 	txnMaxBlockRange         = 1000
-	txnHistoricalSort        = "asc"
+	txnHistoricalSort        = "desc"
 	txnLiveSort              = "desc"
+	TxnEarliestBlock  uint64 = 12376729
 
 	klineMax      = 1000
 	klineInterval = "1s"
@@ -62,7 +62,7 @@ func generateTimeStampToEthPriceMapForTxns(txnResp model.TxnsResp) *map[uint64]s
 	for i := startTimeInSec; i < endTimeInSec; i += klineMax {
 		log.Debugf("called kline service for %v 1-second price data", klineMax)
 		var startTimeInMS uint64 = uint64(i) * 1000
-		var endTimeInMS uint64 = uint64(startTimeInMS+klineMax) * 1000
+		var endTimeInMS uint64 = uint64(startTimeInMS+klineMax-1) * 1000
 		klines, err := klineService.Symbol(ETHUSDT).StartTime(startTimeInMS).EndTime(endTimeInMS).Interval("1s").Limit(klineMax).Do(context.Background()) // limit at 1000 seconds
 		if err != nil {
 			log.Errorf("error getting klines from binance connector: %v", err)
@@ -78,23 +78,10 @@ func generateTimeStampToEthPriceMapForTxns(txnResp model.TxnsResp) *map[uint64]s
 	return &m
 }
 
-// Ensure live transaction runs once to get last block.
-func RuncInsertHistoricalTransactions() {
-	insertLiveTransactions()
-	insertHistoricalTransactions()
-}
-
-func RunInsertLiveTransactions() {
-	for {
-		insertLiveTransactions()
-		time.Sleep(30 * time.Second)
-	}
-}
-
 // Periodically inserts historical transactions.
 func insertHistoricalTransactions() {
 	log.Infof("lastLiveBlockNum: %v", lastLiveBlock)
-	for startBlock := txnEarliestBlock; startBlock < lastLiveBlock; startBlock += txnMaxBlockRange {
+	for startBlock := lastLiveBlock; startBlock >= TxnEarliestBlock; startBlock -= txnMaxBlockRange {
 		log.Info("Insert Historical Transactions")
 		endBlock := startBlock + txnMaxBlockRange
 		etherscanAPIURL := fmt.Sprintf(etherscanAPI, env.UNISWAP_V3_CONTRACT_ADDR, txnPage, txnMaxBlockRange, startBlock, endBlock, txnHistoricalSort, env.ETHERSCAN_API_KEY)
@@ -124,7 +111,7 @@ func insertHistoricalTransactions() {
 		} else {
 			log.Info("successfully inserted historical transactions into db")
 		}
-		time.Sleep(time.Minute)
+		time.Sleep(time.Second * 3)
 	}
 }
 
@@ -171,12 +158,4 @@ func insertLiveTransactions() {
 	} else {
 		log.Info("successfully inserted live transactions into db")
 	}
-
-}
-
-// Generates shortened and unique id to store transactions.
-func generateUniqueUUID(model.Txn) string {
-	// TODO
-	// base64.NewEncoder()
-	return ""
 }

@@ -19,6 +19,7 @@ func InitRouter() {
 	{
 		v1.GET("transaction/fee", ginResponseWithError(GetTransactionFee))
 		v1.GET("transactions", ginResponseWithError(GetHistoricalTxns))
+		v1.GET("swap", ginResponseWithError(GetUniswapSwapPrice))
 	}
 	r.Run()
 }

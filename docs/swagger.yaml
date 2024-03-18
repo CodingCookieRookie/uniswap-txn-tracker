@@ -10,7 +10,36 @@ definitions:
       msg:
         type: string
     type: object
-  response.Txn:
+  model.SwapEventWithToken:
+    properties:
+      from:
+        type: string
+      sqrtPriceX96:
+        type: string
+      to:
+        type: string
+      tokenDecimal:
+        type: string
+      tokenName:
+        type: string
+      tokenSymbol:
+        type: string
+    type: object
+  model.SwapPrice:
+    properties:
+      price:
+        type: string
+      swap_event:
+        $ref: '#/definitions/model.SwapEventWithToken'
+    type: object
+  model.SwapResponse:
+    properties:
+      swap_prices:
+        items:
+          $ref: '#/definitions/model.SwapPrice'
+        type: array
+    type: object
+  model.Txn:
     properties:
       blockHash:
         type: string
@@ -22,6 +51,8 @@ definitions:
         type: string
       cumulativeGasUsed:
         type: string
+      ethprice:
+        type: number
       from:
         type: string
       gas:
@@ -51,17 +82,21 @@ definitions:
       value:
         type: string
     type: object
-  response.TxnFeeResp:
+  model.TxnFeeResp:
     properties:
       transactionFee:
-        type: string
+        type: number
     type: object
-  response.TxnsResp:
+  model.TxnsResp:
     properties:
-      transactions:
+      message:
+        type: string
+      result:
         items:
-          $ref: '#/definitions/response.Txn'
+          $ref: '#/definitions/model.Txn'
         type: array
+      status:
+        type: string
     type: object
 host: localhost:8080
 info:
@@ -69,10 +104,35 @@ info:
     email: alvinchee98@gmail.com
     name: Alvin Chee
     url: https://github.com/CodingCookieRookie
-  description: Server for uniswap transactions operations
+  description: Server for uniswap transactions operations.
   title: Uniswap Transaction Tracker
   version: "1.0"
 paths:
+  /swap:
+    get:
+      consumes:
+      - application/json
+      description: returns uniswap swap price with corresponding transaction hash
+      parameters:
+      - description: Transaction hash
+        in: query
+        name: txn_hash
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.SwapResponse'
+        "500":
+          description: Server Error
+          schema:
+            $ref: '#/definitions/errors.ServerError'
+      summary: returns uniswap swap price with corresponding transaction hash
+      tags:
+      - accounts
   /transaction/fee:
     get:
       consumes:
@@ -91,7 +151,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/response.TxnFeeResp'
+            $ref: '#/definitions/model.TxnFeeResp'
         "500":
           description: Server Error
           schema:
@@ -106,11 +166,6 @@ paths:
       - application/json
       description: returns all historical transactions from start to end time
       parameters:
-      - description: Address
-        in: query
-        name: address
-        required: true
-        type: string
       - description: Start Time in ISO 8601 format
         in: query
         name: start_time
@@ -127,7 +182,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/response.TxnsResp'
+            $ref: '#/definitions/model.TxnsResp'
         "400":
           description: Bad Request
           schema:

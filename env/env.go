@@ -13,6 +13,7 @@ var (
 	MYSQL_URI                string
 	ETHERSCAN_API_KEY        string
 	UNISWAP_V3_CONTRACT_ADDR string
+	INFURA_URL               string
 )
 
 func init() {
@@ -23,4 +24,5 @@ func init() {
 	MYSQL_URI = os.Getenv("MYSQL_URI")
 	ETHERSCAN_API_KEY = os.Getenv("ETHERSCAN_API_KEY")
 	UNISWAP_V3_CONTRACT_ADDR = os.Getenv("UNISWAP_V3_CONTRACT_ADDR")
+	INFURA_URL = os.Getenv("INFURA_URL")
 }
