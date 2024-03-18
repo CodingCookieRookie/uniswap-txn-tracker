@@ -3,6 +3,7 @@ package service
 import (
 	"math"
 
+	"github.com/CodingCookieRookie/uniswap-txn-tracker/errors"
 	"github.com/CodingCookieRookie/uniswap-txn-tracker/log"
 	"github.com/CodingCookieRookie/uniswap-txn-tracker/model"
 	"github.com/CodingCookieRookie/uniswap-txn-tracker/mysql"
@@ -11,18 +12,17 @@ import (
 // Gets historical transactions from/to address from start to end time.
 func GetHistoricalTxnsService(startTime, endTime uint64) (*model.TxnsResp, error) {
 	txns, err := mysql.GetTransactionsByTimestamp(startTime, endTime)
-	if err == nil && len(txns) > 0 {
-		return &model.TxnsResp{
-			Result: txns,
-		}, nil
-	}
 
 	if err != nil {
 		log.Errorf("error getting transactions from db, error: %v", err)
+		return nil, &errors.ServerError{
+			Msg: err.Error(),
+		}
 	}
 
-	// try get from API
-	return nil, nil
+	return &model.TxnsResp{
+		Result: txns,
+	}, nil
 }
 
 func weiToEth(gasPrice uint64) float64 {
@@ -42,15 +42,14 @@ func calculateTransactionFee(txnFeeDetails *model.TxnFeeDetails) float64 {
 // Gets transaction fee of transaction with corresponding transaction hash.
 func GetTransactionFeeService(txnHash string) (*model.TxnFeeResp, error) {
 	txnDetails, err := mysql.GetTxnDetailsByTxnHash(txnHash)
-	if err == nil && txnDetails != nil {
-		return &model.TxnFeeResp{
-			TxnFee: calculateTransactionFee(txnDetails),
-		}, nil
-	}
 	if err != nil {
 		log.Errorf("error getting transaction details from db, error: %v", err)
+		return nil, &errors.ServerError{
+			Msg: err.Error(),
+		}
 	}
 
-	// try get from API
-	return nil, nil
+	return &model.TxnFeeResp{
+		TxnFee: calculateTransactionFee(txnDetails),
+	}, nil
 }

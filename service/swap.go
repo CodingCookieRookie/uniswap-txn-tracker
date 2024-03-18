@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/CodingCookieRookie/uniswap-txn-tracker/errors"
 	"github.com/CodingCookieRookie/uniswap-txn-tracker/log"
 	"github.com/CodingCookieRookie/uniswap-txn-tracker/model"
 	"github.com/CodingCookieRookie/uniswap-txn-tracker/mysql"
@@ -11,18 +12,22 @@ import (
 
 func GetUniswapSwapPrice(txnHash string) (*model.SwapResponse, error) {
 	swapEventsWithToken, err := mysql.GetSwapPricesByTxnHash(txnHash)
-	swapPrices := make([]*model.SwapPrice, 0)
-	if err == nil && swapEventsWithToken != nil {
-		for _, e := range swapEventsWithToken {
-			swapPrice := calculateSwapPrice(e)
-			swapPrices = append(swapPrices, swapPrice)
-		}
-	}
+
 	if err != nil {
 		log.Errorf("error getting transactions from db, error: %v", err)
+		return nil, &errors.ServerError{
+			Msg: err.Error(),
+		}
 	}
 
-	// try get from API
+	swapPrices := make([]*model.SwapPrice, 0)
+	for _, e := range swapEventsWithToken {
+		if e == nil {
+			continue
+		}
+		swapPrice := calculateSwapPrice(e)
+		swapPrices = append(swapPrices, swapPrice)
+	}
 	return &model.SwapResponse{
 		SwapPrices: swapPrices,
 	}, nil

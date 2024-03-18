@@ -1,9 +1,7 @@
 package model
 
 type TxnsResp struct {
-	Status  string `json:"status"`
-	Message string `json:"message"`
-	Result  []*Txn `json:"result"`
+	Result []*Txn `json:"result"`
 }
 
 type Txn struct {
