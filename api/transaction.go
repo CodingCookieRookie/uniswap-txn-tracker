@@ -12,6 +12,31 @@ import (
 
 const timeLayout = "2006-01-02 15:04:05"
 
+// ParseHistoricalTxnTimes parses and validates start and end times.
+func parseHistoricalTxnTimes(historicalTxnReq request.HistoricalTxnReq) (uint64, uint64, error) {
+	startTime, err := time.Parse(timeLayout, historicalTxnReq.StartTime)
+	if err != nil {
+		return 0, 0, &errors.UserError{
+			Msg: "start time must be in correct format, eg. 2006-01-02 15:04:05",
+		}
+	}
+
+	endTime, err := time.Parse(timeLayout, historicalTxnReq.EndTime)
+	if err != nil {
+		return 0, 0, &errors.UserError{
+			Msg: "end time must be in correct format, eg. 2006-01-02 15:04:05",
+		}
+	}
+
+	if startTime.After(endTime) {
+		return 0, 0, &errors.UserError{
+			Msg: "start time must be before or equal to end time",
+		}
+	}
+
+	return uint64(startTime.Unix()), uint64(endTime.Unix()), nil
+}
+
 // GetHistoricalTxns godoc
 // @Summary		returns all historical transactions from start to end time
 // @Description	returns all historical transactions from start to end time
@@ -30,23 +55,10 @@ func GetHistoricalTxns(c *gin.Context) (any, error) {
 		log.Errorf("error binding historical txn request: %v", err)
 		return nil, &errors.UserError{Msg: err.Error()}
 	}
-
-	startTime, err := time.Parse(timeLayout, historicalTxnReq.StartTime)
+	startTimeUnix, endTimeUnix, err := parseHistoricalTxnTimes(historicalTxnReq)
 	if err != nil {
-		return nil, &errors.UserError{
-			Msg: "start time must be in correct format, eg. 2006-01-02 15:04:05",
-		}
+		return nil, err
 	}
-
-	endTime, err := time.Parse(timeLayout, historicalTxnReq.EndTime)
-	if err != nil {
-		return nil, &errors.UserError{
-			Msg: "end time must be in correct format, eg. 2006-01-02 15:04:05",
-		}
-	}
-
-	startTimeUnix := uint64(startTime.Unix())
-	endTimeUnix := uint64(endTime.Unix())
 	log.Debugf("startTimeUnix: %v, endTimeUnix: %v", startTimeUnix, endTimeUnix)
 
 	return service.GetHistoricalTxnsService(startTimeUnix, endTimeUnix)
@@ -65,19 +77,4 @@ func GetHistoricalTxns(c *gin.Context) (any, error) {
 func GetTransactionFee(c *gin.Context) (any, error) {
 	txnHash := c.Query("txn_hash")
 	return service.GetTransactionFeeService(txnHash)
-}
-
-// GetUniswapSwapPrice godoc
-// @Summary		returns uniswap swap price with corresponding transaction hash
-// @Description	returns uniswap swap price with corresponding transaction hash
-// @Tags			accounts
-// @Accept			json
-// @Produce		json
-// @Param			txn_hash		query		string	true	"Transaction hash"
-// @Success		200			{object}	model.SwapResponse
-// @Failure		500			{object}	errors.ServerError	"Server Error"
-// @Router			/swap [get]
-func GetUniswapSwapPrice(c *gin.Context) (any, error) {
-	txnHash := c.Query("txn_hash")
-	return service.GetUniswapSwapPrice(txnHash)
 }
