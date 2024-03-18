@@ -1,11 +1,16 @@
 package api
 
 import (
+	"time"
+
 	"github.com/CodingCookieRookie/uniswap-txn-tracker/api/request"
 	"github.com/CodingCookieRookie/uniswap-txn-tracker/errors"
 	"github.com/CodingCookieRookie/uniswap-txn-tracker/log"
+	"github.com/CodingCookieRookie/uniswap-txn-tracker/service"
 	"github.com/gin-gonic/gin"
 )
+
+const timeLayout = "2006-01-02 15:04:05"
 
 // GetHistoricalTxns godoc
 // @Summary		returns all historical transactions from start to end time
@@ -13,7 +18,6 @@ import (
 // @Tags			accounts
 // @Accept			json
 // @Produce		json
-// @Param			address		query		string	true	"Address"
 // @Param			start_time	query		string	true	"Start Time in ISO 8601 format"
 // @Param			end_time	query		string	true	"End Time in ISO 8601 format"
 // @Success		200			{object}	response.TxnsResp
@@ -26,10 +30,26 @@ func GetHistoricalTxns(c *gin.Context) (any, error) {
 		log.Errorf("error binding historical txn request: %v", err)
 		return nil, &errors.UserError{Msg: err.Error()}
 	}
-	// TODO: checks on input
 
-	// TODO: service impl
-	return nil, nil
+	startTime, err := time.Parse(timeLayout, historicalTxnReq.StartTime)
+	if err != nil {
+		return nil, &errors.UserError{
+			Msg: "start time must be in correct format, eg. 2006-01-02 15:04:05",
+		}
+	}
+
+	endTime, err := time.Parse(timeLayout, historicalTxnReq.EndTime)
+	if err != nil {
+		return nil, &errors.UserError{
+			Msg: "end time must be in correct format, eg. 2006-01-02 15:04:05",
+		}
+	}
+
+	startTimeUnix := uint64(startTime.Unix())
+	endTimeUnix := uint64(endTime.Unix())
+	log.Debugf("startTimeUnix: %v, endTimeUnix: %v", startTimeUnix, endTimeUnix)
+
+	return service.GetHistoricalTxnsService(startTimeUnix, endTimeUnix)
 }
 
 // GetTransactionFee godoc
@@ -43,11 +63,6 @@ func GetHistoricalTxns(c *gin.Context) (any, error) {
 // @Failure		500			{object}	errors.ServerError	"Server Error"
 // @Router			/transaction/fee [get]
 func GetTransactionFee(c *gin.Context) (any, error) {
-	var transactionFeeRequest request.TxnFeeReq
-	if err := c.BindQuery(&transactionFeeRequest); err != nil {
-		log.Errorf("error binding transaction fee request: %v", err)
-		return nil, &errors.UserError{Msg: err.Error()}
-	}
-	// TODO: service impl
-	return nil, nil
+	txnHash := c.Query("txn_hash")
+	return service.GetTransactionFeeService(txnHash)
 }

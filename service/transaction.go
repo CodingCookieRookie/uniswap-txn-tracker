@@ -1,19 +1,56 @@
 package service
 
 import (
-	"github.com/CodingCookieRookie/uniswap-txn-tracker/api/request"
-	"github.com/CodingCookieRookie/uniswap-txn-tracker/api/response"
-	"github.com/gin-gonic/gin"
+	"math"
+
+	"github.com/CodingCookieRookie/uniswap-txn-tracker/log"
+	"github.com/CodingCookieRookie/uniswap-txn-tracker/model"
+	"github.com/CodingCookieRookie/uniswap-txn-tracker/mysql"
 )
 
 // Gets historical transactions from/to address from start to end time.
-func GetHistoricalTxns(historicalTxnReq request.HistoricalTxnReq) (*response.TxnsResp, error) {
-	// TODO: service impl
+func GetHistoricalTxnsService(startTime, endTime uint64) (*model.TxnsResp, error) {
+	txns, err := mysql.GetTransactionsByTimestamp(startTime, endTime)
+	if err == nil && len(txns) > 0 {
+		return &model.TxnsResp{
+			Result: txns,
+		}, nil
+	}
+
+	if err != nil {
+		log.Errorf("error getting transactions from db, error: %v", err)
+	}
+
+	// try get from API
 	return nil, nil
 }
 
+func weiToEth(gasPrice uint64) float64 {
+	return float64(gasPrice) / math.Pow(10, 18)
+}
+
+func calculateTransactionFee(txnFeeDetails *model.TxnFeeDetails) float64 {
+	gasUsed := txnFeeDetails.GasUsed
+	gasPrice := txnFeeDetails.GasPrice
+	ethPrice := txnFeeDetails.EthPrice
+
+	txnFee := float64(gasUsed) * weiToEth(gasPrice) * float64(ethPrice)
+
+	return txnFee
+}
+
 // Gets transaction fee of transaction with corresponding transaction hash.
-func GetTransactionFee(c *gin.Context) (*response.TxnFeeResp, error) {
-	// TODO: service impl
+func GetTransactionFeeService(txnHash string) (*model.TxnFeeResp, error) {
+	txnDetails, err := mysql.GetTxnDetailsByTxnHash(txnHash)
+	if err == nil && txnDetails != nil {
+		return &model.TxnFeeResp{
+			TxnFee: calculateTransactionFee(txnDetails),
+		}, nil
+	}
+	if err != nil {
+		log.Errorf("error getting transaction details from db, error: %v", err)
+	}
+
+	// try get from API
 	return nil, nil
 }
