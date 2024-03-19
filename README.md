@@ -12,42 +12,51 @@ For further details, please refer to the design documentation in the link below.
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
 ### Prerequisites
+- Docker
+- Go 1.21 (For running go tests locally)
 
-- Go 1.20 or later
-
-## Configuration (Manadatory)
+### Configuration (MANDATORY)
 Using a `.env` file in `uniswap-txn-tracker` directory is mandatory to get data from third party services
 
-### Creating a .env File
-1. Create a file named `.env` in the root directory of the project.
-2. Add configuration variables to the `.env` file. Below are the available variables you must configure:
+#### Steps to Create and Configure `.env` File:
+   - Navigate to the root directory of your project
+   - Create a new file and name it `.env`
+   - Open the `.env` file you just created
+   - Copy and paste the following configuration variables into the `.env` file. Ensure to replace the placeholder values with your actual API keys and URLs
 
 ```plaintext
-UNISWAP_V3_CONTRACT_ADDR="0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640"
-BINANCE_API_KEY = "qqI4rRliLm8eUnu9qPj6pmvf9ZMU9r53lQpq..."
-BINANCE_API_SECRET_KEY = "uTYnZHvLrhRqfDhgO4IJ..."
-ETHERSCAN_API_KEY="Q2WIDXVJW4K3C2CQE6FGZZ..."
-INFURA_URL="wss://mainnet.infura.io/ws/v3/eed3d2afcd..."
+UNISWAP_V3_CONTRACT_ADDR="0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640" # Uniswap V3: USDC 3 contract address
+BINANCE_API_KEY = "qqI4rRliLm8eUnu9qPj6pmvf9ZMU9r53lQpq..." # Your Binance API Key Here
+BINANCE_API_SECRET_KEY = "uTYnZHvLrhRqfDhgO4IJ..." # Your Binance Secret Key Here"
+ETHERSCAN_API_KEY="Q2WIDXVJW4K3C2CQE6FGZZ..." # "Your Etherscan API Key Here"
+INFURA_URL="wss://mainnet.infura.io/ws/v3/eed3d2afcd..." "Infura Endpoint URL with your Infura API Key Here"
 ```
 
-3. You can refer to these website documentations to generate the above API keys:
+#### Obtaining API Keys:
 
 - **BINANCE_API_KEY and BINANCE_API_SECRET_KEY**: [Binance API Key Creation Guide](https://www.binance.com/en/support/faq/how-to-create-api-keys-on-binance-360002502072)
 - **ETHERSCAN_API_KEY**: [Etherscan API Documentation](https://docs.etherscan.io/getting-started/viewing-api-usage-statistics)
 - **INFURA API KEY**: [Infura API Documentation](https://docs.infura.io/api/getting-started)
 
-Or contact developer at alvinchee98@gmail.com if further assistance is required
+#### Need Help?
+
+If you encounter any issues or require further assistance with the setup, please do not hesitate to contact the developer at `alvinchee98@gmail.com`.
 
 ### Docker run
 
-First, clone the repository to your local machine:
+First, clone the repository to your local machine
 
-Second, create a .env file with the following environments
+Second, go into uniswap-txn-tracker directory
+
+Third, create and configure the .env file with the above mandatory environment variables
+
+Fourth, run 'docker-compose up --build'
 
 ```bash
 git clone https://github.com/CodingCookieRookie/uniswap-txn-tracker.git
 cd uniswap-txn-tracker
-run `docker-compose up --build`
+touch .env
+docker-compose up --build
 ```
 
 ### Swagger APIs
