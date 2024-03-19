@@ -23,12 +23,20 @@ Using a `.env` file in `uniswap-txn-tracker` directory is mandatory to get data 
 2. Add configuration variables to the `.env` file. Below are the available variables you must configure:
 
 ```plaintext
+UNISWAP_V3_CONTRACT_ADDR="0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640"
 BINANCE_API_KEY = "qqI4rRliLm8eUnu9qPj6pmvf9ZMU9r53lQpq..."
 BINANCE_API_SECRET_KEY = "uTYnZHvLrhRqfDhgO4IJ..."
 ETHERSCAN_API_KEY="Q2WIDXVJW4K3C2CQE6FGZZ..."
-UNISWAP_V3_CONTRACT_ADDR="0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640"
-INFURA_URL="wss://mainnet.infura.io/ws/v3/..."
+INFURA_URL="wss://mainnet.infura.io/ws/v3/eed3d2afcd..."
 ```
+
+3. You can refer to these website documentations to generate the above API keys:
+
+- **BINANCE_API_KEY and BINANCE_API_SECRET_KEY**: [Binance API Key Creation Guide](https://www.binance.com/en/support/faq/how-to-create-api-keys-on-binance-360002502072)
+- **ETHERSCAN_API_KEY**: [Etherscan API Documentation](https://docs.etherscan.io/getting-started/viewing-api-usage-statistics)
+- **INFURA API KEY**: [Infura API Documentation](https://docs.infura.io/api/getting-started)
+
+Or contact developer at alvinchee98@gmail.com if further assistance is required
 
 ### Docker run
 
