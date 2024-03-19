@@ -51,7 +51,7 @@ func initEthClient() {
 }
 
 // has to get lastLiveBlock first
-func insertSwapPrices() {
+func insertHistoricalSwapPrices() {
 	var once sync.Once
 	for i := lastLiveBlock; i >= TxnEarliestBlock; i -= swapBlockRangeSize {
 		log.Debugf("i: %d", i)
@@ -65,8 +65,8 @@ func insertSwapPrices() {
 
 		if err != nil {
 			log.Errorf("error filtering logs: %v", err)
-			once.Do(initEthClient) // retry initEthClient once for each storeSwapPrices
-			i += swapBlockRangeSize
+			once.Do(initEthClient)  // retry initEthClient once for each storeSwapPrices
+			i += swapBlockRangeSize // reinsert failed swap block range
 		}
 
 		swaps := make([]*model.SwapEvent, 0, len(logs))
@@ -100,9 +100,67 @@ func insertSwapPrices() {
 		err = mysql.ReplaceSwapBulkByBatch(swaps)
 		if err != nil {
 			log.Errorf("error replacing swap bulk: %v", err)
+			time.Sleep(generateRandomJitter(5, 8) * time.Second)
 			continue
 		}
 		log.Debugf("successfully inserted swap bulk")
-		time.Sleep(time.Second * 5)
+		time.Sleep(generateRandomJitter(5, 8) * time.Second)
+	}
+}
+
+func insertLiveSwapPrices() {
+	prevLastBlock := lastLiveBlock
+	for {
+		query := ethereum.FilterQuery{
+			Addresses: []common.Address{common.HexToAddress(env.UNISWAP_V3_CONTRACT_ADDR)},
+			Topics:    [][]common.Hash{{signatureHash}},
+			FromBlock: big.NewInt(int64(prevLastBlock)),
+			ToBlock:   big.NewInt(int64(prevLastBlock + swapBlockRangeSize)),
+		}
+		logs, err := client.FilterLogs(context.Background(), query)
+
+		if err != nil {
+			time.Sleep(generateRandomJitter(5, 7) * time.Second)
+			continue
+		}
+		swaps := make([]*model.SwapEvent, 0, len(logs))
+		currentMaxLastBlock := prevLastBlock
+		for _, vLog := range logs {
+			if len(vLog.Topics) < 3 {
+				continue
+			}
+			from := common.HexToAddress(vLog.Topics[1].Hex()).String()
+			to := common.HexToAddress(vLog.Topics[2].Hex()).String()
+
+			eventData, err := uniswapContractABI.Unpack("Swap", vLog.Data)
+			if err != nil {
+				log.Errorf("error unpacking event data: %v", err)
+				continue
+			}
+
+			vLogTxnHash := vLog.TxHash
+
+			if len(eventData) != 5 { // error in event data
+				log.Error("swap event data does not have 5 fields")
+				continue
+			}
+			sqrtPriceX96 := eventData[2].(*big.Int).String()
+			swaps = append(swaps, &model.SwapEvent{
+				TxnHash:      vLogTxnHash.String(),
+				SqrtPriceX96: sqrtPriceX96,
+				From:         from,
+				To:           to,
+			})
+			currentMaxLastBlock = max(currentMaxLastBlock, vLog.BlockNumber)
+		}
+		err = mysql.ReplaceSwapBulkByBatch(swaps)
+		if err != nil {
+			log.Errorf("error replacing swap bulk: %v", err)
+			time.Sleep(generateRandomJitter(5, 7) * time.Second)
+			continue
+		}
+		log.Debugf("successfully inserted swap bulk")
+		prevLastBlock = currentMaxLastBlock
+		time.Sleep(generateRandomJitter(5, 7) * time.Second)
 	}
 }

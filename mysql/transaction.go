@@ -65,7 +65,7 @@ func ReplaceTransactionsBulk(txns []*model.Txn, timestampToEthPriceMap *map[uint
 		}
 		ethPrice, exists := (*timestampToEthPriceMap)[uint64(timeStamp)]
 		if !exists {
-			log.Errorf("timeStamp does not exist in eth mapping: %v", uint64(timeStamp))
+			log.Warningf("timeStamp does not exist in eth mapping: %v", uint64(timeStamp))
 			return nil
 		}
 

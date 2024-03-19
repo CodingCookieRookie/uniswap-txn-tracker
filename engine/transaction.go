@@ -62,7 +62,7 @@ func generateTimeStampToEthPriceMapForTxns(txnResp model.TxnsResp) *map[uint64]s
 	for i := startTimeInSec; i < endTimeInSec; i += klineMax {
 		log.Debugf("called kline service for %v 1-second price data", klineMax)
 		var startTimeInMS uint64 = uint64(i) * 1000
-		var endTimeInMS uint64 = uint64(startTimeInMS+klineMax-1) * 1000
+		var endTimeInMS uint64 = uint64(i+klineMax-1) * 1000
 		klines, err := klineService.Symbol(ETHUSDT).StartTime(startTimeInMS).EndTime(endTimeInMS).Interval("1s").Limit(klineMax).Do(context.Background()) // limit at 1000 seconds
 		if err != nil {
 			log.Errorf("error getting klines from binance connector: %v", err)
@@ -89,18 +89,21 @@ func insertHistoricalTransactions() {
 		resp, err := http.Get(etherscanAPIURL)
 		if err != nil {
 			log.Errorf("error getting transactions from api, err: %v", err)
+			time.Sleep(generateRandomJitter(80, 90) * time.Second)
 			continue
 		}
 		defer resp.Body.Close()
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			log.Errorf("error reading body from api, err: %v", err)
+			time.Sleep(generateRandomJitter(80, 90) * time.Second)
 			continue
 		}
 		var txnResp model.TxnsResp
 		err = json.Unmarshal(body, &txnResp)
 		if err != nil {
 			log.Errorf("error unmarshalling body from api, err: %v", err)
+			time.Sleep(generateRandomJitter(80, 90) * time.Second)
 			continue
 		}
 
@@ -111,7 +114,7 @@ func insertHistoricalTransactions() {
 		} else {
 			log.Info("successfully inserted historical transactions into db")
 		}
-		time.Sleep(time.Second * 90)
+		time.Sleep(generateRandomJitter(80, 90) * time.Second)
 	}
 }
 
